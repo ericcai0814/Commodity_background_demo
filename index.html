@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css">
+        <title>Commodity_background_demo</title>
+    </head>
+    <body>
+        <div id="app" class="container">
+            <button
+                type="button"
+                class="border-0 rounded bg-primary text-white p-2"
+                @click="openForm">新增</button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>標題</th>
+                        <th>圖片</th>
+                        <th>銷售狀態</th>
+                        <th>編輯</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in products" :key="item.id">
+                        <td>{{ item.name }}</td>
+                        <td><img class="thumbnail" :src="item.imageUrl"/></td>
+                        <td>{{ item.onStock? '上架中' : '下架' }}</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="border-0 rounded bg-secondary text-white p-2"
+                                @click="openForm(item)">編輯</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <form v-if="isAdding">
+                <div class="mb-3">
+                    <label for="productName" class="form-label">產品名稱</label>
+                    <input type="text" id="productName" class="form-control" v-model="temp.name">
+                </div>
+                <div class="md-3">
+                    <input type="checkbox" v-model="temp.onStock">
+                    <label for="onStock">銷售狀態</label>
+                </div>
+                <div class="mb-3">
+                    <img :src="temp.imageUrl" class="w-25 img-fluid" alt="">
+                </div>
+                <div class="mb-3">
+                    <label for="productImage" class="form-label">產品圖片</label>
+                    <input
+                        type="text"
+                        id="productImage"
+                        class="form-control"
+                        v-model="temp.imageUrl">
+                </div>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    v-on="{ click: temp.id? editItem : addItem }">更新</button>
+            </form>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.2/vue.global.js"></script>
+    <script>
+        const products = [
+            {
+                id: '1',
+                imageUrl: 'https://images.unsplash.com/photo-1516906571665-49af58989c4e?ixlib=rb-1.2.1&ix' +
+                        'id=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=300&q' +
+                        '=80',
+                name: 'MacBook Pro',
+                onStock: false
+            }, {
+                id: '2',
+                imageUrl: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?ixid=MXwxMjA3fDB8' +
+                        'MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q' +
+                        '=80',
+                name: 'iPhone',
+                onStock: false
+            }
+        ];
+        const App = {
+            data() {
+                return {isAdding: false, products: [], temp: {
+                        //name, imgUrl
+                    }}
+            },
+            methods: {
+                openForm(item = null) {
+                    if (item !== null) {
+                        console.log(item)
+                        this.temp = {
+                            ...item
+                        }
+                    }
+
+                    this.isAdding = true
+                },
+                addItem() {
+                    console.log('add')
+                    this
+                        .products
+                        .push({
+                            ...this.temp,
+                            id: this.products.length + 1
+                        })
+                    this.isAdding = false
+                    this.clearTemp()
+                },
+                editItem() {
+                    console.log('edit')
+                    const index = this
+                        .products
+                        .findIndex((item) => item.id == this.temp.id)
+                    this.products[index] = {
+                        ...this.temp
+                    }
+                    this.isAdding = false
+                    this.clearTemp()
+                },
+                clearTemp() {
+                    this.temp = {
+                        name: '',
+                        imageUrl: '',
+                        onStock: false
+                    }
+                }
+            },
+            created() {
+                this.products = products
+            }
+        };
+
+        Vue
+            .createApp(App)
+            .mount('#app');
+    </script>
+    </body>
+</html>
