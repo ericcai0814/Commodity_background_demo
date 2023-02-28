@@ -9,10 +9,13 @@
     </head>
     <body>
         <div id="app" class="container">
-            <button
-                type="button"
-                class="border-0 rounded bg-primary text-white p-2"
-                @click="openForm">新增</button>
+            <button 
+                    class="btn btn-primary" 
+                    type="button"
+                    @click="addItem"
+                    >
+                新增
+            </button>
             <table class="table">
                 <thead>
                     <tr>
@@ -23,48 +26,58 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="item in products" :key="item.id">
-                        <td>{{ item.name }}</td>
-                        <td><img class="thumbnail" :src="item.imageUrl"/></td>
-                        <td>{{ item.onStock? '上架中' : '下架' }}</td>
+                    <tr v-for="item in products" :key="item.id" :class="{ 'table-success' : item.onStock}">
+                        <td>{{item.name}}</td>
                         <td>
-                            <button
-                                type="button"
-                                class="border-0 rounded bg-secondary text-white p-2"
-                                @click="openForm(item)">編輯</button>
+                            <img :src="item.imageUrl" alt="item.name">
+                        </td>
+                        <td>
+                            <input type="checkbox" v-model="item.onStock">
+                        </td>
+                        <td>
+                            <button 
+                                    type="button" 
+                                    class="btn btn-outline-primary"
+                                    @click="editItem(item)"
+                                    >修改</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <form v-if="isAdding">
+            <!-- temp.id => 在編輯狀態時為 true -->
+            <!-- isNew => 在新增時為 true -->
+            <form v-if="isNew || temp.id">
                 <div class="mb-3">
-                    <label for="productName" class="form-label">產品名稱</label>
-                    <input type="text" id="productName" class="form-control" v-model="temp.name">
-                </div>
-                <div class="md-3">
-                    <input type="checkbox" v-model="temp.onStock">
-                    <label for="onStock">銷售狀態</label>
-                </div>
-                <div class="mb-3">
-                    <img :src="temp.imageUrl" class="w-25 img-fluid" alt="">
-                </div>
-                <div class="mb-3">
-                    <label for="productImage" class="form-label">產品圖片</label>
-                    <input
-                        type="text"
-                        id="productImage"
+                <label for="productName" class="form-label">產品名稱</label>
+                <input 
+                        type="text" 
+                        id="productName" 
                         class="form-control"
-                        v-model="temp.imageUrl">
-                </div>
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    v-on="{ click: temp.id? editItem : addItem }">更新</button>
+                        v-model="temp.name"
+                        ></div>
+                <div class="mb-3">
+                <img
+                    :src="temp.imageUrl"
+                    class="img-fluid"
+                    alt="">
+                <label for="productImage" class="form-label">產品圖片</label>
+                <input 
+                        type="text" 
+                        id="productImage" 
+                        class="form-control"
+                        v-model="temp.imageUrl"
+                        ></div>
+                <button 
+                        type="button" 
+                        class="btn btn-secondary"
+                        @click="confirmEdit"
+                        >更新</button>
             </form>
         </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.2/vue.global.js"></script>
-    <script>
+    <script > 
+        // 模擬非同步資料
         const products = [
             {
                 id: '1',
@@ -84,59 +97,61 @@
         ];
         const App = {
             data() {
-                return {isAdding: false, products: [], temp: {
-                        //name, imgUrl
-                    }}
+                return {
+                    // 接受非同步資料暫存區
+                    products:[],
+                    temp: {
+                        name: "Eric",
+                        imageUrl: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?ixid=MXwxMjA3fDB8' +
+                        'MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q' +
+                        '=80'
+                    },
+                    // 狀態，決定是否為新增產品
+                    isNew: false
+                }
             },
             methods: {
-                openForm(item = null) {
-                    if (item !== null) {
-                        console.log(item)
-                        this.temp = {
-                            ...item
-                        }
-                    }
-
-                    this.isAdding = true
-                },
+                // TODO 做到這裡，還未完成！！！
                 addItem() {
-                    console.log('add')
-                    this
-                        .products
-                        .push({
-                            ...this.temp,
-                            id: this.products.length + 1
-                        })
-                    this.isAdding = false
-                    this.clearTemp()
+                    this.isNew = true;
+                    this.temp = {};
                 },
-                editItem() {
-                    console.log('edit')
-                    const index = this
-                        .products
-                        .findIndex((item) => item.id == this.temp.id)
-                    this.products[index] = {
-                        ...this.temp
-                    }
-                    this.isAdding = false
-                    this.clearTemp()
+                editItem(item) {
+                    // 將資料傳入 temp
+                    this.temp = {...item}; // 使用展開，避免傳參考修改到原始值
+                    console.log(this.temp);
+
+                    
+
                 },
-                clearTemp() {
-                    this.temp = {
-                        name: '',
-                        imageUrl: '',
-                        onStock: false
+                confirmEdit() {
+                    // 新增資料 // 如果是新的資料 是沒有id的 所以可以作為判斷是否為新的資料
+                    if(!this.temp.id){
+                        this.temp.id = new Date().getTime(); // unix timestamp 為了方便產生唯一值
+                        this.temp.onStock =false;
+                        this.products.push(this.temp); // 把 temp 加入到 products
+                        // console.log(this.product);
+                        this.temp = {};
+                    }else{ // 修改資料必須確保修改到的 id 是正確的
+                        this.products.forEach((item, i) => {
+                            if( item.id === this.temp.id){
+                                // item = 原始資料
+                                // temp = 使用者傳入資料（觸發 editItem 時， temp 會帶入 products 資料）
+                                this.products[i] = this.temp; // 帶入 [ i ] ，才能將輸入值帶入正確的位置
+                            }
+                        });
                     }
+                    this.isNew = false;
+                    this.temp = {}; 
                 }
             },
             created() {
-                this.products = products
-            }
+                this.products = products;
+                console.log(this.products);
+            },
         };
 
-        Vue
-            .createApp(App)
-            .mount('#app');
+        Vue.createApp(App).mount('#app');
     </script>
     </body>
 </html>
